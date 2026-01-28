@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+
+# Macro Begin: C:\Users\david\AppData\Roaming\FreeCAD\Macro\hide_all_LCS.FCMacro +++++++++++++++++++++++++++++++++++++++++++++++++
+import FreeCAD as App
+import FreeCADGui as Gui
+
+def hide_LCS_in(obj):
+    """Recursively hide LCS inside obj and its linked children."""
+    count = 0
+
+    # Direct LCS
+    if hasattr(obj, "TypeId") and "CoordinateSystem" in obj.TypeId:
+        try:
+            obj.ViewObject.Visibility = False
+            return 1
+        except Exception:
+            return 0
+
+    # If it's a Link, dive into its linked object
+    if hasattr(obj, "LinkedObject"):
+        linked = obj.LinkedObject
+        if linked:
+            try:
+                for child in linked.OutListRecursive:
+                    if hasattr(child, "TypeId") and "CoordinateSystem" in child.TypeId:
+                        child.ViewObject.Visibility = False
+                        count += 1
+            except Exception:
+                pass
+
+    return count
+
+# Main script
+doc = App.ActiveDocument
+Gui.updateGui = False
+
+total_hidden = 0
+for obj in doc.Objects:
+    total_hidden += hide_LCS_in(obj)
+
+Gui.updateGui = True
+print(f"✅ Hidden {total_hidden} LCS objects (including in links).\n")
+
+# Gui.runCommand('Std_DlgMacroRecord',0)
+# Macro End: C:\Users\david\AppData\Roaming\FreeCAD\Macro\hide_all_LCS.FCMacro +++++++++++++++++++++++++++++++++++++++++++++++++
